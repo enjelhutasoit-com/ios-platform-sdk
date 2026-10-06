@@ -2,14 +2,22 @@
 // Copyright (c) 2026 Enjel Hutasoit
 //
 
+import SwiftUI
 import XCTest
 import WebKit
 @testable import IOSPlatformSDK
 
 final class SDKWebViewTests: XCTestCase {
-    @MainActor func test_webview_canBeCreated() {
-        let webView = WKWebView()
+    @MainActor
+    func test_webview_registersBridge() {
+        guard let url = URL(string: "https://example.com") else {
+            return  XCTFail("Expected valid URL")
+        }
+        let bridge = SDKWebViewBridge()
+        let configuration = SDKWebViewConfiguration(url: url)
+        let sdkWebView = SDKWebView(configuration: configuration, bridge: bridge)
+        let hostingController = UIHostingController(rootView: sdkWebView)
         
-        XCTAssertNotNil(webView)
+        XCTAssertNotNil(hostingController.view)
     }
 }

@@ -7,13 +7,20 @@ import WebKit
 
 public struct SDKWebView: UIViewRepresentable {
     private let configuration: SDKWebViewConfiguration
-
-    public init(configuration: SDKWebViewConfiguration) {
+    private let bridge: SDKWebViewBridge
+    
+    public init(
+        configuration: SDKWebViewConfiguration,
+        bridge: SDKWebViewBridge
+    ) {
         self.configuration = configuration
+        self.bridge = bridge
     }
 
     public func makeUIView(context: Context) -> WKWebView {
-        WKWebView()
+        let webView = WKWebView()
+        bridge.register(on: webView)
+        return webView
     }
 
     public func updateUIView(_ webView: WKWebView, context: Context) {

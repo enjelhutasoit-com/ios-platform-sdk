@@ -7,10 +7,20 @@ import WebKit
 
 @MainActor
 public final class SDKWebViewBridge: NSObject {
-    private let handlerName: String
+    public typealias MessageHandler = @MainActor (
+        _ name: String,
+        _ body: Any
+    ) -> Void
     
-    public init(handlerName: String = "iosPlatform") {
+    private let handlerName: String
+    private let messageHandler: MessageHandler?
+    
+    public init(
+        handlerName: String = "iosPlatform",
+        messageHandler: MessageHandler? = nil
+    ) {
         self.handlerName = handlerName
+        self.messageHandler = messageHandler
     }
     
     public func register(on webView: WKWebView) {
@@ -32,6 +42,10 @@ extension SDKWebViewBridge: WKScriptMessageHandler {
         _ userContentController: WKUserContentController,
         didReceive message: WKScriptMessage
     ) {
-        // Message handling will be added in a later commit.
+        guard message.name == handlerName else {
+            return
+        }
+        
+        messageHandler?(message.name, message.body)
     }
 }

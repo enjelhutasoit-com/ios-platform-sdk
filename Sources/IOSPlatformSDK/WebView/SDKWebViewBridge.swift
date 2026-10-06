@@ -11,6 +11,7 @@ public final class SDKWebViewBridge: NSObject {
         _ message: SDKWebViewMessage
     ) -> Void
 
+    private let parser = SDKWebViewMessageParser()
     private let handlerName: String
     private let messageHandler: MessageHandler?
 
@@ -42,18 +43,10 @@ extension SDKWebViewBridge: WKScriptMessageHandler {
         didReceive message: WKScriptMessage
     ) {
         guard message.name == handlerName,
-              let body = message.body as? [String: Any],
-              let action = body["action"] as? String else {
+              let webViewMessage = parser.parse(message.body) else {
             return
         }
 
-        let payload = body["payload"] as? [String: String] ?? [:]
-
-        messageHandler?(
-            SDKWebViewMessage(
-                action: action,
-                payload: payload
-            )
-        )
+        messageHandler?(webViewMessage)
     }
 }

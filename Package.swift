@@ -4,19 +4,19 @@
 import PackageDescription
 
 let package = Package(
-    name: "ios-platform-sdk",
+    name: "IOSPlatformSDK",
     platforms: [.iOS(.v16)],
     products: [
         .library(
-            name: "ios-platform-sdk",
-            targets: ["ios-platform-sdk"]),
+            name: "IOSPlatformSDK",
+            targets: ["IOSPlatformSDK"]),
     ],
     targets: [
         .target(
-            name: "ios-platform-sdk"),
+            name: "IOSPlatformSDK"),
         .testTarget(
-            name: "ios-platform-sdkTests",
-            dependencies: ["ios-platform-sdk"]
+            name: "IOSPlatformSDKTests",
+            dependencies: ["IOSPlatformSDK"]
         ),
     ]
 )

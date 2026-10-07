@@ -4,4 +4,5 @@
 
 public enum SDKNetworkError: Error, Equatable {
     case insecureURL
+    case unauthenticated
 }

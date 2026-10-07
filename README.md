@@ -354,3 +354,15 @@ The project focuses on native iOS platform engineering:
 - CI and release validation
 
 The project is intentionally implemented with native Swift and Apple frameworks rather than cross-platform abstractions.
+
+## Integration
+
+See the [Integration Guide](Documentation/Integration.md) for detailed instructions on:
+
+- SDK initialization
+- WebView integration
+- JavaScript bridge
+- Capability authorization
+- Authentication
+- Networking
+- API versioning

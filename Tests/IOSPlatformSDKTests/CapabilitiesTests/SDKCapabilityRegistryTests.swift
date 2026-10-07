@@ -20,8 +20,15 @@ final class SDKCapabilityRegistryTests: XCTestCase {
             action: "open",
             payload: ["screen": "profile"]
         )
+        
+        let authorization = SDKCapabilityAuthorization(
+            allowedActions: ["open"]
+        )
 
-        registry.execute(message)
+        registry.execute(
+            message,
+            authorization: authorization
+        )
 
         XCTAssertEqual(receivedMessage, message)
     }
@@ -29,9 +36,14 @@ final class SDKCapabilityRegistryTests: XCTestCase {
     func test_registryIgnoresUnregisteredCapability() {
         let registry = SDKCapabilityRegistry()
 
+        let authorization = SDKCapabilityAuthorization(
+            allowedActions: ["unknown"]
+        )
+
         XCTAssertFalse(
             registry.execute(
-                SDKWebViewMessage(action: "unknown")
+                SDKWebViewMessage(action: "unknown"),
+                authorization: authorization
             )
         )
     }
@@ -42,13 +54,42 @@ final class SDKCapabilityRegistryTests: XCTestCase {
         registry.register(
             SDKCapabilityMock(action: "test") { _ in }
         )
+        
+        let authorization = SDKCapabilityAuthorization(
+            allowedActions: ["test"]
+        )
 
         XCTAssertTrue(
             registry.execute(
-                SDKWebViewMessage(action: "test")
+                SDKWebViewMessage(action: "test"),
+                authorization: authorization
             )
         )
     }
+    
+    func test_registryDoesNotExecuteUnauthorizedCapability() {
+        let registry = SDKCapabilityRegistry()
+        let authorization = SDKCapabilityAuthorization(
+            allowedActions: ["open"]
+        )
+
+        var wasExecuted = false
+
+        registry.register(
+            SDKCapabilityMock(action: "camera") { _ in
+                wasExecuted = true
+            }
+        )
+
+        let executed = registry.execute(
+            SDKWebViewMessage(action: "camera"),
+            authorization: authorization
+        )
+
+        XCTAssertFalse(executed)
+        XCTAssertFalse(wasExecuted)
+    }
+
 }
 
 private struct SDKCapabilityMock: SDKCapability {

@@ -131,8 +131,12 @@ final class SDKWebViewBridgeTests: XCTestCase {
             }
         )
         
+        let authorization = SDKCapabilityAuthorization(
+            allowedActions: ["open"]
+        )
+
         let bridge = SDKWebViewBridge { message in
-            _ = registry.execute(message)
+            _ = registry.execute(message, authorization: authorization)
         }
         
         let webView = WKWebView()

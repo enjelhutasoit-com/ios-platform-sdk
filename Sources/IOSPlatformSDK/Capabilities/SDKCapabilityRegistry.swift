@@ -12,8 +12,12 @@ public final class SDKCapabilityRegistry {
     }
     
     @discardableResult
-    public func execute(_ message: SDKWebViewMessage) -> Bool {
-        guard let capability = capabilities[message.action] else {
+    public func execute(
+        _ message: SDKWebViewMessage,
+        authorization: SDKCapabilityAuthorization
+    ) -> Bool {
+        guard authorization.isAllowed(message),
+            let capability = capabilities[message.action] else {
             return false
         }
         

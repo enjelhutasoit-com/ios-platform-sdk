@@ -20,4 +20,24 @@ final class SDKWebViewTests: XCTestCase {
         
         XCTAssertNotNil(hostingController.view)
     }
+    
+    @MainActor
+    func test_webViewCanBeHosted() {
+        guard let url = URL(string: "about:blank") else {
+            return XCTFail("Expected valid URL")
+        }
+        
+        let bridge = SDKWebViewBridge()
+        
+        let sdkWebView = SDKWebView(
+            configuration: SDKWebViewConfiguration(url: url),
+            bridge: bridge
+        )
+        
+        let hostingController = UIHostingController(
+            rootView: sdkWebView
+        )
+        
+        XCTAssertNotNil(hostingController.view)
+    }
 }

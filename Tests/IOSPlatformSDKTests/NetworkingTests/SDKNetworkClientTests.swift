@@ -80,12 +80,32 @@ final class SDKNetworkClientTests: XCTestCase {
         )
         
         let request = client.makeRequest(
-            for: URL(string: "https://example.com")!
+            for: URL(string: "https://example.com")!, apiVersion: .v1
         )
         
         XCTAssertEqual(
             request.value(forHTTPHeaderField: "Authorization"),
             "Bearer access-token"
+        )
+    }
+    
+    func test_client_buildsURLWithAPIVersion() {
+        guard let url = URL(string: "https://example.com/orders") else {
+            return XCTFail("Expected valid URL")
+        }
+        
+        let client = SDKNetworkClient(
+            authenticator: SDKAuthenticator()
+        )
+        
+        let request = client.makeRequest(
+            for: url,
+            apiVersion: .v1
+        )
+        
+        XCTAssertEqual(
+            request.url?.absoluteString,
+            "https://example.com/v1/orders"
         )
     }
 }

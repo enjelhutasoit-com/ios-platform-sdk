@@ -18,9 +18,23 @@ public final class SDKNetworkClient {
         self.authenticator = authenticator
     }
 
-    /// Builds a request with the current SDK access token.
-    public func makeRequest(for url: URL) -> URLRequest {
-        var request = URLRequest(url: url)
+    /// Builds an authenticated request for the specified API version.
+    public func makeRequest(
+        for url: URL,
+        apiVersion: SDKAPIVersion
+    ) -> URLRequest {
+        var components = URLComponents(
+            url: url,
+            resolvingAgainstBaseURL: false
+        )
+        
+        let versionPath = "/\(apiVersion.rawValue)"
+        
+        if let path = components?.path {
+            components?.path = versionPath + path
+        }
+
+        var request = URLRequest(url: components?.url ?? url)
 
         if let accessToken = authenticator.accessToken {
             request.setValue(
@@ -42,7 +56,10 @@ public final class SDKNetworkClient {
             throw SDKNetworkError.unauthenticated
         }
 
-        let request = makeRequest(for: url)
+        let request = makeRequest(
+            for: url,
+            apiVersion: .v1
+        )
 
         let (data, _) = try await session.data(for: request)
 

@@ -136,7 +136,10 @@ final class SDKWebViewBridgeTests: XCTestCase {
         )
 
         let bridge = SDKWebViewBridge { message in
-            _ = registry.execute(message, authorization: authorization)
+            _ = registry.execute(
+                message,
+                authorization: authorization
+            )
         }
         
         let webView = WKWebView()
@@ -156,6 +159,51 @@ final class SDKWebViewBridgeTests: XCTestCase {
         
         wait(for: [expectation], timeout: 5)
     }
+    
+    @MainActor
+    func text_bridge_doesNotDispatchUnauthorizedToCapability() {
+        let expectation = expectation(
+            description: "Capability must not receive message"
+        )
+        expectation.isInverted = true
+        
+        let registry = SDKCapabilityRegistry()
+        
+        registry.register(
+            BridgeCapabilityMock {
+                expectation.fulfill()
+            }
+        )
+        
+        let authorization = SDKCapabilityAuthorization(
+            allowedActions: ["profile"]
+        )
+        
+        let bridge = SDKWebViewBridge { message in
+            _ = registry.execute(
+                message,
+                authorization: authorization
+            )
+        }
+        
+        let webView = WKWebView()
+        bridge.register(on: webView)
+        
+        webView.loadHTMLString(
+            """
+            <script>
+                window.webkit.messageHandlers.iosPlatform.postMessage({
+                    action: "open",
+                    payload: {}
+                });
+            </script>
+            """,
+            baseURL: nil
+        )
+        
+        wait(for: [expectation], timeout: 1)
+    }
+    
 }
 
 

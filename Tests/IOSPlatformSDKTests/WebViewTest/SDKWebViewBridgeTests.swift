@@ -116,6 +116,42 @@ final class SDKWebViewBridgeTests: XCTestCase {
 
         wait(for: [messageReceived], timeout: 5)
     }
+    
+    @MainActor
+    func test_bridge_dispatchesMessageToCapabilityRegistry() {
+        let expectation = expectation(
+            description: "Capability receives message"
+        )
+        
+        let registry = SDKCapabilityRegistry()
+        
+        registry.register(
+            BridgeCapabilityMock {
+                expectation.fulfill()
+            }
+        )
+        
+        let bridge = SDKWebViewBridge { message in
+            _ = registry.execute(message)
+        }
+        
+        let webView = WKWebView()
+        bridge.register(on: webView)
+        
+        webView.loadHTMLString(
+            """
+            <script>
+                window.webkit.messageHandlers.iosPlatform.postMessage({
+                    action: "open",
+                    payload: {}
+                });
+            </script>
+            """,
+            baseURL: nil
+        )
+        
+        wait(for: [expectation], timeout: 5)
+    }
 }
 
 
@@ -132,5 +168,18 @@ private final class TestNavigationDelegate: NSObject, WKNavigationDelegate {
         didFinish navigation: WKNavigation?
     ) {
         onFinish()
+    }
+}
+
+private struct BridgeCapabilityMock: SDKCapability {
+    let action: String = "open"
+    let handler: () -> Void
+
+    init(handler: @escaping () -> Void) {
+        self.handler = handler
+    }
+
+    func execute(_ message: SDKWebViewMessage) {
+        handler()
     }
 }

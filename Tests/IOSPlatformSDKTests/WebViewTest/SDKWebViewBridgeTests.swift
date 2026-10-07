@@ -52,4 +52,85 @@ final class SDKWebViewBridgeTests: XCTestCase {
 
         XCTAssertNotNil(webView)
     }
+    
+    @MainActor
+    func test_bridge_sendsMessageToJavaScript() {
+        let pageLoaded = expectation(description: "Page loaded")
+        
+        let webView = WKWebView()
+        let navigationDelegate = TestNavigationDelegate {
+            pageLoaded.fulfill()
+        }
+        
+        webView.navigationDelegate = navigationDelegate
+        
+        webView.loadHTMLString(
+                    """
+                    <script>
+                        window.receivedMessage = null;
+                    
+                        window.addEventListener(
+                            'iosPlatformMessage',
+                            function(event) {
+                                window.receivedMessage = event.detail;
+                            }
+                        );
+                    </script>
+                    """,
+                    baseURL: nil
+        )
+        
+        wait(for: [pageLoaded], timeout: 5)
+        
+        let bridge = SDKWebViewBridge()
+        
+        bridge.send(
+            action: "open",
+            payload: ["screen": "profile"],
+            to: webView
+        )
+        
+        let messageReceived = expectation(description: "JavaScript receives message")
+        
+        webView.evaluateJavaScript(
+            "JSON.stringify(window.receivedMessage)"
+        ) { result, error in
+            XCTAssertNil(error)
+
+            guard let json = result as? String,
+                  let data = json.data(using: .utf8),
+                  let message = try? JSONSerialization.jsonObject(
+                    with: data
+                ) as? [String: Any] else {
+                return XCTFail("Expected JavaScript message")
+            }
+
+            XCTAssertEqual(message["action"] as? String, "open")
+            XCTAssertEqual(
+                message["payload"] as? [String: String],
+                ["screen": "profile"]
+            )
+
+            messageReceived.fulfill()
+        }
+
+        wait(for: [messageReceived], timeout: 5)
+    }
+}
+
+
+@MainActor
+private final class TestNavigationDelegate: NSObject, WKNavigationDelegate {
+    private let onFinish: () -> Void
+    
+    init(onFinish: @escaping () -> Void) {
+        self.onFinish = onFinish
+    }
+    
+    func webView(
+        _ webView: WKWebView,
+        didFinish navigation: WKNavigation?
+    ) {
+        onFinish()
+    }
 }

@@ -44,4 +44,41 @@ final class SDKWebViewMessageParserTests: XCTestCase {
         
         XCTAssertNil(message)
     }
+    
+    func test_parserAcceptsMessageWithoutPayload() {
+        let parser = SDKWebViewMessageParser()
+        
+        let message = parser.parse([
+            "action": "open"
+        ])
+        
+        XCTAssertEqual(
+            message,
+            SDKWebViewMessage(
+                action: "open",
+                payload: [:]
+            )
+        )
+    }
+    
+    func test_parserIgnoresUnknownFields() {
+        let parser = SDKWebViewMessageParser()
+        
+        let message = parser.parse([
+            "action": "open",
+            "payload": [
+                "screen": "profile"
+            ],
+            "version": "legacy",
+            "unknownField": "ignored"
+        ])
+        
+        XCTAssertEqual(
+            message,
+            SDKWebViewMessage(
+                action: "open",
+                payload: ["screen": "profile"]
+            )
+        )
+    }
 }
